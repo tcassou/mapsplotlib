@@ -14,7 +14,7 @@ from google_static_maps_api import SCALE
 BLANK_THRESH = 2 * 1e-3     # Value below which point in a heatmap should be blank
 
 
-def plot_markers(markers):
+def plot_markers(markers, maptype='roadmap'):
     """Plot markers on a map.
 
     :param pandas.DataFrame markers: DataFrame with at least 'latitude' and 'longitude' columnns, and optionally
@@ -22,9 +22,11 @@ def plot_markers(markers):
         * 'label' column, see GoogleStaticMapsAPI docs for more info
         * 'size' column, see GoogleStaticMapsAPI docs for more info
 
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+
     :return: None
     """
-    img = GoogleStaticMapsAPI.map(scale=SCALE, markers=markers.T.to_dict().values())
+    img = GoogleStaticMapsAPI.map(scale=SCALE, markers=markers.T.to_dict().values(), maptype=maptype)
     plt.figure(figsize=(10, 10))
     plt.imshow(np.array(img))
     plt.tight_layout()
@@ -32,13 +34,14 @@ def plot_markers(markers):
     plt.show()
 
 
-def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None):
+def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None, maptype='roadmap'):
     """Plot a geographical heatmap of the given metric.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
     :param int size: target size of the map, in pixels
     :param int resolution: resolution (in pixels) for the heatmap
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
 
     :return: None
     """
@@ -60,6 +63,7 @@ def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None):
         zoom=zoom,
         scale=SCALE,
         size=(size, size),
+        maptype=maptype,
     )
     # Plot
     width = SCALE * size
@@ -74,17 +78,18 @@ def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None):
     plt.show()
 
 
-def density_plot(latitudes, longitudes, size=MAX_SIZE, resolution=None):
+def density_plot(latitudes, longitudes, size=MAX_SIZE, resolution=None, maptype='roadmap'):
     """Given a set of geo coordinates, draw a density plot on a map.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
     :param int size: target size of the map, in pixels
     :param int resolution: resolution (in pixels) for the heatmap
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
 
     :return: None
     """
-    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), size=size, resolution=resolution)
+    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), size=size, resolution=resolution, maptype=maptype)
 
 
 def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=None):
