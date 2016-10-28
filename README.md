@@ -30,11 +30,11 @@ gmaps.plot_markers()
 ```
 will produce
 
-![Marker Plot](http://imgur.com/a/2pdbG)
+![Marker Plot](https://github.com/thomasCassou/gmaps/blob/master/examples/markers.png)
 
 ### Density Plots
 
-The only thing you need is a pandas DataFrame `df` containing a `latitude` and a `longitude` columns, describing locations.
+The only thing you need is a pandas DataFrame `df` containing a `'latitude'` and a `'longitude'` columns, describing locations.
 
 ```
 import gmaps
@@ -42,18 +42,18 @@ import gmaps
 gmaps.density_plot(df['latitude'], df['longitude'])
 ```
 
-![Density Plot](http://imgur.com/a/OPEw7)
+![Density Plot](https://github.com/thomasCassou/gmaps/blob/master/examples/density.png)
 
 ### Heat Maps
 
-This time your pandas DataFrame `df` will need an extra `value` column, describing the metric you want to plot (you may have to normalize it properly for a good rendering).
+This time your pandas DataFrame `df` will need an extra `'value'` column, describing the metric you want to plot (you may have to normalize it properly for a good rendering).
 
 ```
 import gmaps
 
 gmaps.heatmap(df['latitude'], df['longitude'], df['value'])
 ```
-![Heat Map](http://imgur.com/a/qHj0j)
+![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/heatmap.png)
 
 ### More to come!
 
