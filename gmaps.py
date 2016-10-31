@@ -21,7 +21,6 @@ def plot_markers(markers, maptype='roadmap'):
         * 'color' column, see GoogleStaticMapsAPI docs for more info
         * 'label' column, see GoogleStaticMapsAPI docs for more info
         * 'size' column, see GoogleStaticMapsAPI docs for more info
-
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
 
     :return: None
@@ -39,6 +38,7 @@ def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None, mapty
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
+    :param pandas.Series values: series of sample values
     :param int size: target size of the map, in pixels
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
@@ -98,6 +98,7 @@ def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=N
     :param [(float, float, float)] data: list of 3-dimensional grid coordinates
     :param int size: grid size
     :param int resolution: desired grid resolution
+    :param int smoothing_window: size of the gaussian kernels for smoothing
 
     :return: smoothed grid values
     :rtype: numpy.ndarray
