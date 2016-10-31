@@ -26,7 +26,7 @@ Simply use
 ```
 import gmaps
 
-gmaps.plot_markers()
+gmaps.plot_markers(df)
 ```
 will produce
 
