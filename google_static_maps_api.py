@@ -29,7 +29,7 @@ class GoogleStaticMapsAPI:
 
     @classmethod
     def map(
-            cls, center=None, zoom=None, size=(MAX_SIZE, MAX_SIZE), scale=2,
+            cls, center=None, zoom=None, size=(MAX_SIZE, MAX_SIZE), scale=SCALE,
             maptype='roadmap', file_format='png32', markers=None):
         """Proceed to API call with GET query.
 
@@ -47,6 +47,10 @@ class GoogleStaticMapsAPI:
 
         :param (int, int) size: (required) defines the rectangular dimensions (pixels) of the map image.
             Max size for each dimension is 640 (free account).
+
+        :param int scale: (optional), 1 or 2 (free plan). Affects the number of pixels that are returned.
+            scale=2 returns twice as many pixels as scale=1 while retaining the same coverage area and level of detail
+            (i.e. the contents of the map don't change).
 
         :param string maptype: (optional) defines the type of map to construct. Several possible values, including
             * roadmap (default): specifies a standard roadmap image, as is normally shown on the Google Maps.
