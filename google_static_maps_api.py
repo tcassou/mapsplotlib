@@ -13,8 +13,11 @@ TILE_SIZE = 256                                      # Basic Mercator Google Map
 MAX_SIN_LAT = 1. - 1e-5                              # Bound for sinus of latitude
 MAX_SIZE = 640                                       # Max size of the map in pixels
 SCALE = 2                                            # 1 or 2 (free plan), see Google Static Maps API docs
+MAPTYPE = 'roadmap'                                  # Default map type
 API_KEY = 'your_google_api_key_here'                 # Put your API key here, see https://console.developers.google.com
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
+
+cache = {}                                           # Caching queries to limit API calls / speed them up
 
 
 class GoogleStaticMapsAPI:
@@ -30,8 +33,8 @@ class GoogleStaticMapsAPI:
     @classmethod
     def map(
             cls, center=None, zoom=None, size=(MAX_SIZE, MAX_SIZE), scale=SCALE,
-            maptype='roadmap', file_format='png32', markers=None):
-        """Proceed to API call with GET query.
+            maptype=MAPTYPE, file_format='png32', markers=None):
+        """GET query on the Google Static Maps API to retrieve a static image.
 
         :param object center: (required if markers not present) defines the center of the map, equidistant from edges.
             This parameter takes a location as either
@@ -74,9 +77,12 @@ class GoogleStaticMapsAPI:
                 Only compatible with <mid> size markers
             * 'coordinates': list of tuples (lat, long) for which the options are common.
 
-        :return: API response
-        :rtype: JSON object
+        :return: map image
+        :rtype: PIL.Image
         """
+        # For now, caching only if no markers are given
+        should_cache = markers is None
+
         url = BASE_URL
         if center:
             url += 'center={},{}&'.format(*center) if isinstance(center, tuple) else 'center={}&'.format(center)
@@ -99,7 +105,14 @@ class GoogleStaticMapsAPI:
         url += 'format={}&'.format(file_format)
         url += 'key={}'.format(API_KEY)
 
-        return Image.open(StringIO((requests.get(url).content)))
+        if url in cache:
+            return cache[url]
+
+        img = Image.open(StringIO((requests.get(url).content)))
+        if should_cache:
+            cache[url] = img
+
+        return img
 
     @classmethod
     def to_pixel(cls, latitude, longitude):
