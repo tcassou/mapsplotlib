@@ -3,10 +3,12 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import numpy as np
+import pandas as pd
 import scipy.ndimage as ndi
 from matplotlib import pyplot as plt
 
 from google_static_maps_api import GoogleStaticMapsAPI
+from google_static_maps_api import MAPTYPE
 from google_static_maps_api import MAX_SIZE
 from google_static_maps_api import SCALE
 
@@ -14,7 +16,64 @@ from google_static_maps_api import SCALE
 BLANK_THRESH = 2 * 1e-3     # Value below which point in a heatmap should be blank
 
 
-def plot_markers(markers, maptype='roadmap'):
+def background_and_pixels(latitudes, longitudes, size, maptype):
+    """Queries the proper background map and translate geo coordinated into pixel locations on this map.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param int size: target size of the map, in pixels
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+
+    :return: map and pixels
+    :rtype: (PIL.Image, pandas.DataFrame)
+    """
+    # From lat/long to pixels, zoom and position in the tile
+    center_lat = (latitudes.max() + latitudes.min()) / 2
+    center_long = (longitudes.max() + longitudes.min()) / 2
+    zoom = GoogleStaticMapsAPI.get_zoom(latitudes, longitudes, size, SCALE)
+    pixels = GoogleStaticMapsAPI.to_tile_coordinates(latitudes, longitudes, center_lat, center_long, zoom, size, SCALE)
+    # Google Map
+    img = GoogleStaticMapsAPI.map(
+        center=(center_lat, center_long),
+        zoom=zoom,
+        scale=SCALE,
+        size=(size, size),
+        maptype=maptype,
+    )
+    return img, pixels
+
+
+def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE):
+    """Scatter plot over a map. Can be used to visualize clusters by providing the marker colors.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param pandas.Series colors: marker colors, as integers
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+
+    :return: None
+    """
+    width = SCALE * MAX_SIZE
+    colors = pd.Series(0, index=latitudes.index) if colors is None else colors
+    img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
+    plt.figure(figsize=(10, 10))
+    plt.imshow(np.array(img))                                               # Background map
+    plt.scatter(                                                            # Scatter plot
+        pixels['x_pixel'],
+        pixels['y_pixel'],
+        c=colors,
+        s=width / 40,
+        linewidth=0,
+        alpha=0.5,
+    )
+    plt.gca().invert_yaxis()                                                # Origin of map is upper left
+    plt.axis([0, width, width, 0])                                          # Remove margin
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_markers(markers, maptype=MAPTYPE):
     """Plot markers on a map.
 
     :param pandas.DataFrame markers: DataFrame with at least 'latitude' and 'longitude' columnns, and optionally
@@ -33,40 +92,26 @@ def plot_markers(markers, maptype='roadmap'):
     plt.show()
 
 
-def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None, maptype='roadmap'):
+def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE):
     """Plot a geographical heatmap of the given metric.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
     :param pandas.Series values: series of sample values
-    :param int size: target size of the map, in pixels
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
 
     :return: None
     """
-    size = min(size, MAX_SIZE)
-    # From lat/long to pixels, zoom and position in the tile
-    center_lat = (latitudes.max() + latitudes.min()) / 2
-    center_long = (longitudes.max() + longitudes.min()) / 2
-    zoom = GoogleStaticMapsAPI.get_zoom(latitudes, longitudes, size, SCALE)
-    pixels = GoogleStaticMapsAPI.to_tile_coordinates(latitudes, longitudes, center_lat, center_long, zoom, size, SCALE)
+    img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
     # Smooth metric
     z = grid_density_gaussian_filter(
         zip(pixels['x_pixel'], pixels['y_pixel'], values),
-        size * SCALE,
-        resolution=resolution if resolution else size * SCALE,              # Heuristic for pretty plots
-    )
-    # Google Map
-    img = GoogleStaticMapsAPI.map(
-        center=(center_lat, center_long),
-        zoom=zoom,
-        scale=SCALE,
-        size=(size, size),
-        maptype=maptype,
+        MAX_SIZE * SCALE,
+        resolution=resolution if resolution else MAX_SIZE * SCALE,          # Heuristic for pretty plots
     )
     # Plot
-    width = SCALE * size
+    width = SCALE * MAX_SIZE
     plt.figure(figsize=(10, 10))
     plt.imshow(np.array(img))                                               # Background map
     plt.imshow(z, origin='lower', extent=[0, width, 0, width], alpha=0.15)  # Foreground, transparent heatmap
@@ -78,18 +123,17 @@ def heatmap(latitudes, longitudes, values, size=MAX_SIZE, resolution=None, mapty
     plt.show()
 
 
-def density_plot(latitudes, longitudes, size=MAX_SIZE, resolution=None, maptype='roadmap'):
+def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE):
     """Given a set of geo coordinates, draw a density plot on a map.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
-    :param int size: target size of the map, in pixels
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
 
     :return: None
     """
-    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), size=size, resolution=resolution, maptype=maptype)
+    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), resolution=resolution, maptype=maptype)
 
 
 def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=None):
