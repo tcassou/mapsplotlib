@@ -55,6 +55,17 @@ gmaps.heatmap(df['latitude'], df['longitude'], df['value'])
 ```
 ![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/heatmap.png)
 
+### Scatter Plots
+
+Let's assume your pandas DataFrame `df` has a numerical `'cluster'` column, describing clusters of geographical points. You can produce plots like the following:
+
+```
+import gmaps
+
+gmaps.heatmap(df['latitude'], df['longitude'], colors=df['cluster'])
+```
+![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/clusters.png)
+
 ### More to come!
 
 ## Requirements
