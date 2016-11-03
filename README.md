@@ -62,7 +62,7 @@ Let's assume your pandas DataFrame `df` has a numerical `'cluster'` column, desc
 ```
 import gmaps
 
-gmaps.heatmap(df['latitude'], df['longitude'], colors=df['cluster'])
+gmaps.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
 ![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/clusters.png)
 
