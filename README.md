@@ -66,6 +66,17 @@ gmaps.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
 ![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/clusters.png)
 
+### Polygon Plots
+
+Still with the same DataFrame `df` and its `'cluster'` column, plotting clusters and their convex hull.
+
+```
+import gmaps
+
+gmaps.polygons(df['latitude'], df['longitude'], df['cluster'])
+```
+![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/polygons.png)
+
 ### More to come!
 
 ## Requirements

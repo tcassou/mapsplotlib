@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 
 import numpy as np
 import pandas as pd
+from scipy.spatial import ConvexHull
 import scipy.ndimage as ndi
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 from matplotlib import pyplot as plt
 
 from google_static_maps_api import GoogleStaticMapsAPI
@@ -160,3 +163,46 @@ def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=N
     z = ndi.gaussian_filter(img, (w, w))                                    # Gaussian convolution
     z[z <= BLANK_THRESH] = np.nan                                           # Making low values blank
     return z[w:-w, w:-w]
+
+
+def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
+    """Plot clusters of points on map, including them in a polygon defining their convex hull.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param pandas.Series clusters: marker clusters, as integers
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+
+    :return: None
+    """
+    width = SCALE * MAX_SIZE
+    img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
+
+    polygons = []
+    for c in clusters.unique():
+        in_polygon = clusters == c
+        if in_polygon.sum() < 3:
+            print '[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(i, in_polygon.sum())
+            continue
+        cluster_pixels = pixels.loc[clusters == c]
+        polygons.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))
+
+    plt.figure(figsize=(10, 10))
+    ax = plt.subplot(111)
+    plt.imshow(np.array(img))                                               # Background map
+    p = PatchCollection(polygons, cmap='jet', alpha=0.15)                   # Collection of polygons
+    p.set_array(clusters.unique())
+    ax.add_collection(p)
+    plt.scatter(                                                            # Scatter plot
+        pixels['x_pixel'],
+        pixels['y_pixel'],
+        c=clusters,
+        s=width / 40,
+        linewidth=0,
+        alpha=0.25,
+    )
+    plt.gca().invert_yaxis()                                                # Origin of map is upper left
+    plt.axis([0, width, width, 0])                                          # Remove margin
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
