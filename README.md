@@ -1,6 +1,6 @@
 # GMaps
 
-Custom Python plots on a Google Maps background. A flexible matplotlib-like interface to generate many types of plots on top of Google Maps.
+Custom Python plots on a Google Maps background. A flexible matplotlib like interface to generate many types of plots on top of Google Maps.
 
 ## Setup
 
