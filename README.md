@@ -1,8 +1,8 @@
 # GMaps
 
-Custom Python plots on a Google Maps background.
+Custom Python plots on a Google Maps background. A flexible matplotlib-like interface to generate many types of plots on top of Google Maps.
 
-## Installation
+## Setup
 
 You'll need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API, get your server key and paste it in `google_static_maps_api.py`.
 
