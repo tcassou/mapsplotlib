@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 import numpy as np
 import pandas as pd
-from scipy.spatial import ConvexHull
 import scipy.ndimage as ndi
+from scipy.spatial import ConvexHull
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from matplotlib import pyplot as plt

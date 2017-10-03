@@ -4,7 +4,19 @@ Custom Python plots on a Google Maps background. A flexible matplotlib like inte
 
 ## Setup
 
-You'll need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API, get your server key and paste it in `google_static_maps_api.py`.
+Simply clone the repository from Github and install dependencies (I always use a `virtualenv`, feel free to skip that step):
+```
+git clone git@github.com:tcassou/gmaps
+cd gmaps
+virtualenv env
+. env/bin/activate
+pip install -r requirements.txt
+```
+
+You'll then need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API, get your server key and paste it in `google_static_maps_api.py` by replacing the placeholder in the following line:
+```
+API_KEY = 'your_google_api_key_here'                 # Put your API key here, see https://console.developers.google.com
+```
 
 ## Examples
 
@@ -30,7 +42,7 @@ gmaps.plot_markers(df)
 ```
 will produce
 
-![Marker Plot](https://github.com/thomasCassou/gmaps/blob/master/examples/markers.png)
+![Marker Plot](https://github.com/tcassou/gmaps/blob/master/examples/markers.png)
 
 ### Density Plots
 
@@ -42,7 +54,7 @@ import gmaps
 gmaps.density_plot(df['latitude'], df['longitude'])
 ```
 
-![Density Plot](https://github.com/thomasCassou/gmaps/blob/master/examples/density.png)
+![Density Plot](https://github.com/tcassou/gmaps/blob/master/examples/density.png)
 
 ### Heat Maps
 
@@ -53,7 +65,7 @@ import gmaps
 
 gmaps.heatmap(df['latitude'], df['longitude'], df['value'])
 ```
-![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/heatmap.png)
+![Heat Map](https://github.com/tcassou/gmaps/blob/master/examples/heatmap.png)
 
 ### Scatter Plots
 
@@ -64,7 +76,7 @@ import gmaps
 
 gmaps.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
-![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/clusters.png)
+![Heat Map](https://github.com/tcassou/gmaps/blob/master/examples/clusters.png)
 
 ### Polygon Plots
 
@@ -75,7 +87,7 @@ import gmaps
 
 gmaps.polygons(df['latitude'], df['longitude'], df['cluster'])
 ```
-![Heat Map](https://github.com/thomasCassou/gmaps/blob/master/examples/polygons.png)
+![Heat Map](https://github.com/tcassou/gmaps/blob/master/examples/polygons.png)
 
 ### More to come!
 
