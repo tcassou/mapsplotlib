@@ -98,3 +98,6 @@ gmaps.polygons(df['latitude'], df['longitude'], df['cluster'])
 * `scipy >= 0.13.3`
 * `matplotlib >= 1.3.1`
 * `requests >= 2.7.0`
+* `requests>=2.18.4`
+* `pillow>=4.3.0`
+
