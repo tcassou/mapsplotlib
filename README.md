@@ -38,9 +38,9 @@ Simply plotting markers on a map. Consider a pandas DataFrame `df` defined as fo
 
 Simply use
 ```
-import mapsplotlib
+from mapsplotlib import mapsplot as mplt
 
-mapsplotlib.plot_markers(df)
+mplt.plot_markers(df)
 ```
 will produce
 
@@ -51,9 +51,9 @@ will produce
 The only thing you need is a pandas DataFrame `df` containing a `'latitude'` and a `'longitude'` columns, describing locations.
 
 ```
-import mapsplotlib
+from mapsplotlib import mapsplot as mplt
 
-mapsplotlib.density_plot(df['latitude'], df['longitude'])
+mplt.density_plot(df['latitude'], df['longitude'])
 ```
 
 ![Density Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/density.png)
@@ -63,9 +63,9 @@ mapsplotlib.density_plot(df['latitude'], df['longitude'])
 This time your pandas DataFrame `df` will need an extra `'value'` column, describing the metric you want to plot (you may have to normalize it properly for a good rendering).
 
 ```
-import mapsplotlib
+from mapsplotlib import mapsplot as mplt
 
-mapsplotlib.heatmap(df['latitude'], df['longitude'], df['value'])
+mplt.heatmap(df['latitude'], df['longitude'], df['value'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/heatmap.png)
 
@@ -74,9 +74,9 @@ mapsplotlib.heatmap(df['latitude'], df['longitude'], df['value'])
 Let's assume your pandas DataFrame `df` has a numerical `'cluster'` column, describing clusters of geographical points. You can produce plots like the following:
 
 ```
-import mapsplotlib
+from mapsplotlib import mapsplot as mplt
 
-mapsplotlib.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
+mplt.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/clusters.png)
 
@@ -85,9 +85,9 @@ mapsplotlib.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 Still with the same DataFrame `df` and its `'cluster'` column, plotting clusters and their convex hull.
 
 ```
-import mapsplotlib
+from mapsplotlib import mapsplot as mplt
 
-mapsplotlib.polygons(df['latitude'], df['longitude'], df['cluster'])
+mplt.polygons(df['latitude'], df['longitude'], df['cluster'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/polygons.png)
 
