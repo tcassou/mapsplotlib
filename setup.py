@@ -8,7 +8,7 @@ setup(
     version = '1.0.2',
     description = 'Custom Python plots on a Google Maps background. A flexible matplotlib like interface to generate many types of plots on top of Google Maps.',
     url = 'https://github.com/tcassou/mapsplotlib',
-    download_url = 'https://github.com/tcassou/mapsplotlib/archive/1.0.0.tar.gz',
+    download_url = 'https://github.com/tcassou/mapsplotlib/archive/1.0.2.tar.gz',
     keywords = ['google', 'maps', 'matplotlib', 'python', 'plot'],
     license='MIT',
     classifiers = [
