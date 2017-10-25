@@ -14,7 +14,6 @@ MAX_SIN_LAT = 1. - 1e-5                              # Bound for sinus of latitu
 MAX_SIZE = 640                                       # Max size of the map in pixels
 SCALE = 2                                            # 1 or 2 (free plan), see Google Static Maps API docs
 MAPTYPE = 'roadmap'                                  # Default map type
-API_KEY = 'your_google_api_key_here'                 # Put your API key here, see https://console.developers.google.com
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 
 cache = {}                                           # Caching queries to limit API calls / speed them up
@@ -29,6 +28,16 @@ class GoogleStaticMapsAPI:
     See https://developers.google.com/maps/documentation/static-maps/intro for more info.
 
     """
+    @classmethod
+    def register_api_key(cls, api_key):
+        """Register a Google Static Maps API key to enable queries to Google.
+        Create your own Google Static Maps API key on https://console.developers.google.com.
+
+        :param str api_key: the API key
+
+        :return: None
+        """
+        cls._api_key = api_key
 
     @classmethod
     def map(
@@ -80,6 +89,9 @@ class GoogleStaticMapsAPI:
         :return: map image
         :rtype: PIL.Image
         """
+        if not hasattr(cls, '_api_key'):
+            raise KeyError('No Google Static Maps API key registered - refer to the README.')
+
         # For now, caching only if no markers are given
         should_cache = markers is None
 
@@ -103,7 +115,7 @@ class GoogleStaticMapsAPI:
         url += 'size={}x{}&'.format(*tuple(min(el, MAX_SIZE) for el in size))
         url += 'maptype={}&'.format(maptype)
         url += 'format={}&'.format(file_format)
-        url += 'key={}'.format(API_KEY)
+        url += 'key={}'.format(cls._api_key)
 
         if url in cache:
             return cache[url]

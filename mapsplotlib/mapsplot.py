@@ -19,6 +19,17 @@ from google_static_maps_api import SCALE
 BLANK_THRESH = 2 * 1e-3     # Value below which point in a heatmap should be blank
 
 
+def register_api_key(api_key):
+    """Register a Google Static Maps API key to enable queries to Google.
+    Create your own Google Static Maps API key on https://console.developers.google.com.
+
+    :param str api_key: the API key
+
+    :return: None
+    """
+    GoogleStaticMapsAPI.register_api_key(api_key)
+
+
 def background_and_pixels(latitudes, longitudes, size, maptype):
     """Queries the proper background map and translate geo coordinated into pixel locations on this map.
 

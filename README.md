@@ -6,18 +6,18 @@ This package was renamed from the legacy `tcassou/gmaps` due to an unfortunate c
 
 ## Setup
 
-Simply clone the repository from Github and install dependencies (I always use a `virtualenv`, feel free to skip that step):
+Simply install from `pip`:
 ```
-git clone git@github.com:tcassou/mapsplotlib
-cd mapsplotlib
-virtualenv env
-. env/bin/activate
-pip install -r requirements.txt
+pip install mapsplotlib
 ```
 
-You'll then need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API, get your server key and paste it in `google_static_maps_api.py` by replacing the placeholder in the following line:
+You'll then need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API and get your server key. Before plotting maps, you'll have to register your key (only once for each session you start):
 ```
-API_KEY = 'your_google_api_key_here'                 # Put your API key here, see https://console.developers.google.com
+from mapsplotlib import mapsplot as mplt
+
+mplt.register_api_key('your_google_api_key_here')
+
+# all plots can now be performed here
 ```
 
 ## Examples
@@ -36,10 +36,8 @@ Simply plotting markers on a map. Consider a pandas DataFrame `df` defined as fo
 | 4 |  48.8644 |  2.33160  | purple |  mid  |   0   |
 ```
 
-Simply use
+Simply use (assuming `mapsplot` was imported already, and your key registered)
 ```
-from mapsplotlib import mapsplot as mplt
-
 mplt.plot_markers(df)
 ```
 will produce
@@ -51,8 +49,6 @@ will produce
 The only thing you need is a pandas DataFrame `df` containing a `'latitude'` and a `'longitude'` columns, describing locations.
 
 ```
-from mapsplotlib import mapsplot as mplt
-
 mplt.density_plot(df['latitude'], df['longitude'])
 ```
 
@@ -63,8 +59,6 @@ mplt.density_plot(df['latitude'], df['longitude'])
 This time your pandas DataFrame `df` will need an extra `'value'` column, describing the metric you want to plot (you may have to normalize it properly for a good rendering).
 
 ```
-from mapsplotlib import mapsplot as mplt
-
 mplt.heatmap(df['latitude'], df['longitude'], df['value'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/heatmap.png)
@@ -74,8 +68,6 @@ mplt.heatmap(df['latitude'], df['longitude'], df['value'])
 Let's assume your pandas DataFrame `df` has a numerical `'cluster'` column, describing clusters of geographical points. You can produce plots like the following:
 
 ```
-from mapsplotlib import mapsplot as mplt
-
 mplt.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/clusters.png)
@@ -85,8 +77,6 @@ mplt.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 Still with the same DataFrame `df` and its `'cluster'` column, plotting clusters and their convex hull.
 
 ```
-from mapsplotlib import mapsplot as mplt
-
 mplt.polygons(df['latitude'], df['longitude'], df['cluster'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/polygons.png)
