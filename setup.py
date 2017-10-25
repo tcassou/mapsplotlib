@@ -12,11 +12,9 @@ setup(
     url = 'https://github.com/tcassou/mapsplotlib',
     download_url = 'https://github.com/tcassou/mapsplotlib/archive/{}.tar.gz'.format(version),
     keywords = ['google', 'maps', 'matplotlib', 'python', 'plot'],
-    license='MIT',
     classifiers = [
         'Programming Language :: Python',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering :: Visualization',
     ],
