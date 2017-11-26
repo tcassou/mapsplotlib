@@ -210,7 +210,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     for c in clusters.unique():
         in_polygon = clusters == c
         if in_polygon.sum() < 3:
-            print '[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(i, in_polygon.sum())
+            print '[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum())
             continue
         cluster_pixels = pixels.loc[clusters == c]
         polygons.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))
