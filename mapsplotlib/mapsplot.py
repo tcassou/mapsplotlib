@@ -2,6 +2,8 @@
 from __future__ import division
 from __future__ import unicode_literals
 
+import warnings
+
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndi
@@ -90,7 +92,7 @@ def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE):
 def plot_markers(markers, maptype=MAPTYPE):
     """Plot markers on a map.
 
-    :param pandas.DataFrame markers: DataFrame with at least 'latitude' and 'longitude' columnns, and optionally
+    :param pandas.DataFrame markers: DataFrame with at least 'latitude' and 'longitude' columns, and optionally
         * 'color' column, see GoogleStaticMapsAPI docs for more info
         * 'label' column, see GoogleStaticMapsAPI docs for more info
         * 'size' column, see GoogleStaticMapsAPI docs for more info
@@ -98,7 +100,22 @@ def plot_markers(markers, maptype=MAPTYPE):
 
     :return: None
     """
-    img = GoogleStaticMapsAPI.map(scale=SCALE, markers=markers.T.to_dict().values(), maptype=maptype)
+    # Checking input columns
+    fields = markers.columns.intersection(['latitude', 'longitude', 'color', 'label', 'size'])
+    if len(fields) == 0 or 'latitude' not in fields or 'longitude' not in fields:
+        msg = 'Input dataframe should contain at least colums \'latitude\' and \'longitude\' '
+        msg += '(and columns \'color\', \'label\', \'size\' optionally).'
+        raise KeyError(msg)
+    # Checking NaN input
+    nans = (markers.latitude.isnull() | markers.latitude.isnull())
+    if nans.sum() > 0:
+        warnings.warn('Ignoring {} example(s) containing NaN latitude or longitude.'.format(nans.sum()))
+    # Querying map
+    img = GoogleStaticMapsAPI.map(
+        scale=SCALE,
+        markers=markers[fields].loc[~nans].T.to_dict().values(),
+        maptype=maptype,
+    )
     plt.figure(figsize=(10, 10))
     plt.imshow(np.array(img))
     plt.tight_layout()
