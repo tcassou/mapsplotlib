@@ -107,7 +107,7 @@ def plot_markers(markers, maptype=MAPTYPE):
         msg += '(and columns \'color\', \'label\', \'size\' optionally).'
         raise KeyError(msg)
     # Checking NaN input
-    nans = (markers.latitude.isnull() | markers.latitude.isnull())
+    nans = (markers.latitude.isnull() | markers.longitude.isnull())
     if nans.sum() > 0:
         warnings.warn('Ignoring {} example(s) containing NaN latitude or longitude.'.format(nans.sum()))
     # Querying map
