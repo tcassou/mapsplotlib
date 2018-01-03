@@ -15,6 +15,7 @@ MAX_SIZE = 640                                       # Max size of the map in pi
 SCALE = 2                                            # 1 or 2 (free plan), see Google Static Maps API docs
 MAPTYPE = 'roadmap'                                  # Default map type
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
+HTTP_SUCCESS_STATUS = 200
 
 cache = {}                                           # Caching queries to limit API calls / speed them up
 
@@ -120,7 +121,13 @@ class GoogleStaticMapsAPI:
         if url in cache:
             return cache[url]
 
-        img = Image.open(StringIO((requests.get(url).content)))
+        response = requests.get(url)
+        # Checking response code, in case of error adding Google API message to the debug of requests exception
+        if response.status_code != HTTP_SUCCESS_STATUS:
+            print 'HTTPError: {} - {}. {}'.format(response.status_code, response.reason, response.content)
+        response.raise_for_status()     # This raises an error in case of unexpected status code
+        # Processing the image in case of success
+        img = Image.open(StringIO((response.content)))
         if should_cache:
             cache[url] = img
 
