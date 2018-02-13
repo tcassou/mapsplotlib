@@ -7,15 +7,23 @@ import warnings
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndi
+import math
 from scipy.spatial import ConvexHull
+from scipy.interpolate import griddata
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from matplotlib import pyplot as plt
+from PIL import Image
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import utm
+import os
 
-from google_static_maps_api import GoogleStaticMapsAPI
-from google_static_maps_api import MAPTYPE
-from google_static_maps_api import MAX_SIZE
-from google_static_maps_api import SCALE
+from mapsplotlib.google_static_maps_api import GoogleStaticMapsAPI
+from mapsplotlib.google_static_maps_api import MAPTYPE
+from mapsplotlib.google_static_maps_api import MAX_SIZE
+from mapsplotlib.google_static_maps_api import SCALE
+from mapsplotlib.google_static_maps_api import INITIALRESOLUTION
+
 
 
 BLANK_THRESH = 2 * 1e-3     # Value below which point in a heatmap should be blank
@@ -69,11 +77,12 @@ def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE):
 
     :return: None
     """
-    width = SCALE * MAX_SIZE
+    width = SCALE * MAX_SIZE-50
     colors = pd.Series(0, index=latitudes.index) if colors is None else colors
     img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
+    t = np.array(img)
     plt.figure(figsize=(10, 10))
-    plt.imshow(np.array(img))                                               # Background map
+    plt.imshow(np.array(img),origin='lower')                                              # Background map
     plt.scatter(                                                            # Scatter plot
         pixels['x_pixel'],
         pixels['y_pixel'],
@@ -145,7 +154,7 @@ def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE):
     width = SCALE * MAX_SIZE
     plt.figure(figsize=(10, 10))
     plt.imshow(np.array(img))                                               # Background map
-    plt.imshow(z, origin='lower', extent=[0, width, 0, width], alpha=0.15)  # Foreground, transparent heatmap
+    plt.imshow(z, origin='lower', extent=[0, width, 0, width], alpha=0.5)  # Foreground, transparent heatmap
     plt.scatter(pixels['x_pixel'], pixels['y_pixel'], s=1)                  # Markers of all points
     plt.gca().invert_yaxis()                                                # Origin of map is upper left
     plt.axis([0, width, width, 0])                                          # Remove margin
@@ -210,7 +219,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     for c in clusters.unique():
         in_polygon = clusters == c
         if in_polygon.sum() < 3:
-            print '[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum())
+            print('[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum()))
             continue
         cluster_pixels = pixels.loc[clusters == c]
         polygons.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))
@@ -221,7 +230,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     p = PatchCollection(polygons, cmap='jet', alpha=0.15)                   # Collection of polygons
     p.set_array(clusters.unique())
     ax.add_collection(p)
-    plt.scatter(                                                            # Scatter plot
+    plt.scatter(                                                           # Scatter plot
         pixels['x_pixel'],
         pixels['y_pixel'],
         c=clusters,
@@ -234,3 +243,432 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     plt.axis('off')
     plt.tight_layout()
     plt.show()
+
+def scatter_with_wgs84(latitudes, longitudes, z, colors=None, maptype=MAPTYPE, **kargs):
+    """Scatter plot over a map. Can be used to visualize clusters by providing the marker colors.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param pandas.Series colors: marker colors, as integers
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+
+    :param string title: title of the plot
+    :param string xlabel: x label
+    :param string ylabel: y label
+    :param boolean cbar: add color bar to the graphic
+    :param string cLabel: Label in color bar
+    :param boolean saveFig: save Figs
+    :param string figname: name of the file to save the figure
+
+    :return: None
+    """
+    ###########################
+    # Default optional values #
+    ###########################
+    title = kargs.pop('title', ' ')
+    xlabel = kargs.pop('xlabel', ' ')
+    ylabel = kargs.pop('ylabel', ' ')
+    cLabel = kargs.pop('cLabel',' ')
+    cbar = kargs.pop('cbar', False)
+    saveFig = kargs.pop('saveFig', False)
+    figName = kargs.pop('figName','googleMaps_wLines')
+
+    if kargs: raise TypeError('extra keywords: %s' % kargs)
+
+
+    width = SCALE * MAX_SIZE
+    #########################
+    # Image with google map #
+    #########################
+    img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
+
+    ###########################
+    # zoom normally = 16      #
+    ###########################
+    center_lat = (latitudes.max() + latitudes.min()) / 2
+    center_long = (longitudes.max() + longitudes.min()) / 2
+    zoom = GoogleStaticMapsAPI.get_zoom(latitudes, longitudes, MAX_SIZE, SCALE)
+
+    ###################################
+    # Center of image in pixel/meters #
+    ###################################
+    centerPixelY = round(img.height / 2)
+    centerPixelx = round(img.width / 2)
+
+    ##################################################################
+    # lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913 #
+    ##################################################################
+    [mx, my] = GoogleStaticMapsAPI.LatLonToMeters(center_lat, center_long)
+    curResolution = INITIALRESOLUTION / 2 ** zoom / SCALE
+
+    ############################
+    # x and y vector in meters #
+    ############################
+    xVec = mx + (np.arange(img.width) - centerPixelx) * curResolution
+    yVec = my + (np.arange(img.height) - centerPixelY) * curResolution
+
+    ###################################################
+    # From EPSG:900913 to WGS84 Datum lat lon vectors #
+    ###################################################
+    lat_north, lon_east = GoogleStaticMapsAPI.MetersToLatLon(xVec, yVec)
+
+    ############################################################
+    # plot google map image and the values from the input data #
+    ############################################################
+    fig, ax = plt.subplots()
+    ax.set_title(title, y=1.04)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    ax.imshow(np.flip(np.array(img),0), extent=[lon_east[0], lon_east[-1],lat_north[0], lat_north[-1]], origin='lower')
+
+    sc = ax.scatter(
+        longitudes,# Scatter plot
+        latitudes,
+        c=z,
+        s=width / 400,
+        linewidth=0,
+        alpha=1,
+        zorder=3
+    )
+
+    #############
+    # Color Bar #
+    #############
+    if cbar:
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.2, aspect=15)
+        cbar = fig.colorbar(sc, cax=cax)
+        cbar.ax.set_title(cLabel)
+
+    ######################
+    # Hide google footer #
+    ######################
+    ax.axis([lon_east[50], lon_east[-1], lat_north[50], lat_north[-1]]) # This hides the google footer
+
+    ###################
+    # Save Fig option #
+    ###################
+    if saveFig:
+        if os.path.exists('./Figs'):
+            fig.savefig('./Figs/' + figName + '.png', format='png', dpi=600)
+            fig.savefig('./Figs/' + figName + '.eps', format='eps', dpi=1000)
+        else:
+            os.makedirs('./Figs/')
+            fig.savefig('./Figs/' + figName + '.png', format='png', dpi=600)
+            fig.savefig('./Figs/' + figName + '.eps', format='eps', dpi=1000)
+
+
+def scatter_with_utm(utmX, utmY, z, zone_number, zone_letter, colors=None, maptype=MAPTYPE, **kargs):
+    """Scatter plot over a map. Can be used to visualize clusters by providing the marker colors.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param pandas.Series colors: marker colors, as integers
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+
+    :param string title: title of the plot
+    :param string xlabel: x label
+    :param string ylabel: y label
+    :param boolean cbar: add color bar to the graphic
+    :param string cLabel: Label in color bar
+    :param boolean saveFig: save Figs
+    :param string figname: name of the file to save the figure
+
+    :return: None
+    """
+    ###########################
+    # Default optional values #
+    ###########################
+    title = kargs.pop('title', ' ')
+    xlabel = kargs.pop('xlabel', 'East - Local Cordinates (UTM-REF) [m]')
+    ylabel = kargs.pop('ylabel', 'North - Local Cordinates (UTM-REF) [m]')
+    cLabel = kargs.pop('cLabel',' ')
+    cbar = kargs.pop('cbar', False)
+    saveFig = kargs.pop('saveFig', False)
+    figName = kargs.pop('figName','googleMaps_wLines_utm')
+
+    if kargs: raise TypeError('extra keywords: %s' % kargs)
+
+    ############################################################################
+    # Convert UTM to WGS84 because google maps api only acepts tuple (lat,lon) #
+    ############################################################################
+    lat = []
+    lon = []
+
+    for i in range(len(utmX)):
+        latlon = pd.Series(utm.to_latlon(utmX[i], utmY[i], zone_number, zone_letter))
+        lat.append(latlon[0])
+        lon.append(latlon[1])
+
+
+    ################################################
+    # latitudes and longitudes to panda database #
+    ################################################
+    d_wgs = {'latitudes': lat, 'longitudes': lon}
+    df_wgs = pd.DataFrame(data=d_wgs)
+
+    latitudes = df_wgs['latitudes']
+    longitudes = df_wgs['longitudes']
+
+    #################################
+    # Get google maps static image #
+    ################################
+    width = SCALE * MAX_SIZE
+    img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
+
+    ##########################
+    # get zoom normally = 16 #
+    ##########################
+    center_lat = (latitudes.max() + latitudes.min()) / 2
+    center_long = (longitudes.max() + longitudes.min()) / 2
+    zoom = GoogleStaticMapsAPI.get_zoom(latitudes, longitudes, MAX_SIZE, SCALE)
+
+    ###################################
+    # Center of image in pixel/meters #
+    ###################################
+    centerPixelY = round(img.height / 2)
+    centerPixelX = round(img.width / 2)
+
+    ##################################################################
+    # lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913 #
+    ##################################################################
+    [mx, my] = GoogleStaticMapsAPI.LatLonToMeters(center_lat, center_long)
+    curResolution = INITIALRESOLUTION / 2 ** zoom / SCALE
+
+    ###################
+    # x and y vector #
+    ##################
+    xVec = mx + (np.arange(img.width) - centerPixelX) * curResolution
+    yVec = my + (np.arange(img.height) - centerPixelY) * curResolution
+
+    #####################################
+    # Convert from EPSG:900913 to WGS84 #
+    #####################################
+    lat_north, lon_east = GoogleStaticMapsAPI.MetersToLatLon(xVec, yVec)
+
+    ########################
+    # Convert WGS84 to UTM #
+    ########################
+    east = []
+    north = []
+    for i in range(len(lat_north)):
+        eastNorth = utm.from_latlon(lat_north[i], lon_east[i], force_zone_number=zone_number)
+        east.append(eastNorth[0])
+        north.append(eastNorth[1])
+
+    ############################################################
+    # plot google map image and the values from the input data #
+    ############################################################
+    fig, ax = plt.subplots()
+    ax.set_title(title, y=1.04)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    ax.imshow(np.flip(np.array(img),0), extent=[east[0], east[-1],north[0], north[-1]], origin='lower')
+
+    sc = ax.scatter(
+        utmX,# Scatter plot
+        utmY,
+        c=z,
+        s=width / 400,
+        linewidth=0,
+        alpha=1,
+        zorder=3
+    )
+
+    #############
+    # Color Bar #
+    #############
+    if cbar:
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.2, aspect=15)
+        cbar = fig.colorbar(sc, cax=cax)
+        cbar.ax.set_title(cLabel)
+
+    ######################
+    # Hide google footer #
+    ######################
+    ax.axis([east[50], east[-1], north[50], north[-1]])
+
+    ###################
+    # Save Fig option #
+    ###################
+    if saveFig:
+        if os.path.exists('./Figs'):
+            fig.savefig('./Figs/' + figName + '.png', format='png', dpi=600)
+            fig.savefig('./Figs/' + figName + '.eps', format='eps', dpi=1000)
+        else:
+            os.makedirs('./Figs/')
+            fig.savefig('./Figs/' + figName + '.png', format='png', dpi=600)
+            fig.savefig('./Figs/' + figName + '.eps', format='eps', dpi=1000)
+
+
+def background_map_wgs84(latitudes, longitudes, maptype='satellite', **kargs):
+    """Queries the proper background map and translate geo coordinated into pixel locations on this map.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param int size: target size of the map, in pixels
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param string xlabel: x label
+    :param string ylabel: y label
+    :param int zoom level: 14 to get extra area
+
+    :return: fig and ax
+    :rtype: (PIL.Image, pandas.DataFrame)
+        """
+    ###########################
+    # Default optional values #
+    ###########################
+    xlabel = kargs.pop('xlabel', 'Longitudes')
+    ylabel = kargs.pop('ylabel', 'Latitudes')
+
+    ##########################################################
+    # From lat/long to pixels, zoom and position in the tile #
+    ##########################################################
+    center_lat = (latitudes.max() + latitudes.min()) / 2
+    center_long = (longitudes.max() + longitudes.min()) / 2
+    zoom = kargs.pop('zoom', GoogleStaticMapsAPI.get_zoom(latitudes, longitudes, MAX_SIZE, SCALE)) #default zoom value
+
+    ##############
+    # Google Map #
+    ##############
+    img = GoogleStaticMapsAPI.map(
+            center=(center_lat, center_long),
+            zoom=zoom,
+            scale=SCALE,
+            size=(MAX_SIZE, MAX_SIZE),
+            maptype=maptype,
+    )
+
+    centerPixelY = round(img.height/2)
+    centerPixelx = round(img.width/2)
+
+    ##################################################################
+    # lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913 #
+    ##################################################################
+    [mx, my] = GoogleStaticMapsAPI.LatLonToMeters(center_lat,center_long)
+    curResolution = INITIALRESOLUTION / 2 ** zoom / SCALE
+
+    ###################
+    # x and y vector #
+    ##################
+    xVec = mx + (np.arange(img.width)-centerPixelx) * curResolution
+    yVec = my + (np.arange(img.height)-centerPixelY) * curResolution
+
+    #####################################
+    # Convert from EPSG:900913 to WGS84 #
+    #####################################
+    lat_north, lon_east = GoogleStaticMapsAPI.MetersToLatLon(xVec, yVec)
+
+    ##############
+    # fig output #
+    ##############
+    fig, ax = plt.subplots()
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    ax.imshow(np.flip(np.array(img), 0), extent=[lon_east[0], lon_east[-1], lat_north[0], lat_north[-1]], origin='lower')
+    ax.axis([lon_east[50], lon_east[-1], lat_north[50], lat_north[-1]])
+
+    return fig, ax
+
+def background_map_utm(utmX, utmY, zone_number, zone_letter, maptype='satellite', **kargs):
+    """Queries the proper background map and translate geo coordinated into pixel locations on this map.
+
+    :param pandas.Series utmX: series of sample easting
+    :param pandas.Series utmY: series of sample northing
+    :param int zone_number: number of the zone in the globe
+    :param string zone_letter: string with 'S' or 'N'
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param string xlabel: x label
+    :param string ylabel: y label
+    :param int zoom level: 14 to get extra area
+
+    :return: fig and ax
+    :rtype: (PIL.Image, pandas.DataFrame)
+        """
+    ############################################################################
+    # Convert UTM to WGS84 because google maps api only acepts tuple (lat,lon) #
+    ############################################################################
+    lat = []
+    lon = []
+
+    for i in range(len(utmX)):
+        latlon = pd.Series(utm.to_latlon(utmX[i], utmY[i], zone_number, zone_letter))
+        lat.append(latlon[0])
+        lon.append(latlon[1])
+
+    ###########################
+    # Default optional values #
+    ###########################
+    xlabel = kargs.pop('xlabel', 'East - Local Cordinates (UTM-REF) [m]')
+    ylabel = kargs.pop('ylabel', 'North - Local Cordinates (UTM-REF) [m]')
+
+    ################################################
+    # latitudes and longitudes from panda database #
+    ################################################
+    d_wgs = {'latitudes': lat, 'longitudes': lon}
+    df_wgs = pd.DataFrame(data=d_wgs)
+
+    latitudes = df_wgs['latitudes']
+    longitudes  = df_wgs['longitudes']
+
+    ##########################################################
+    # From lat/long to pixels, zoom and position in the tile #
+    ##########################################################
+    center_lat = (latitudes.max() + latitudes.min()) / 2
+    center_long = (longitudes.max() + longitudes.min()) / 2
+    zoom = kargs.pop('zoom', GoogleStaticMapsAPI.get_zoom(latitudes, longitudes, MAX_SIZE, SCALE)) # default zoom value
+
+    ##############
+    # Google Map #
+    ##############
+    img = GoogleStaticMapsAPI.map(
+            center=(center_lat, center_long),
+            zoom=zoom,
+            scale=SCALE,
+            size=(MAX_SIZE, MAX_SIZE),
+            maptype=maptype,
+    )
+
+    centerPixelY = round(img.height/2)
+    centerPixelx = round(img.width/2)
+
+    ##################################################################
+    # lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913 #
+    ##################################################################
+    [mx, my] = GoogleStaticMapsAPI.LatLonToMeters(center_lat,center_long)
+    curResolution = INITIALRESOLUTION / 2 ** zoom / SCALE
+
+    # x and y vector
+    xVec = mx + (np.arange(img.width)-centerPixelx) * curResolution
+    yVec = my + (np.arange(img.height)-centerPixelY) * curResolution
+
+    ######################
+    # Convert to lat lon #
+    ######################
+    lat_north, lon_east = GoogleStaticMapsAPI.MetersToLatLon(xVec, yVec)
+
+    #Convert to UTM
+    east = []
+    north = []
+    for i in range(len(lat_north)):
+        eastNorth = utm.from_latlon(lat_north[i],lon_east[i],force_zone_number=zone_number)
+        east.append(eastNorth[0])
+        north.append(eastNorth[1])
+
+    #################
+    # fig,ax output #
+    #################
+    fig, ax = plt.subplots()
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    ax.imshow(np.flip(np.array(img), 0), extent=[east[0], east[-1], north[0], north[-1]], origin='lower')
+    ax.axis([east[50], east[-1], north[50], north[-1]])
+
+    return fig, ax
+
+

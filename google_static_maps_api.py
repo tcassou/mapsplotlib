@@ -2,11 +2,14 @@
 from __future__ import unicode_literals
 
 try:
-    from StringIO import StringIO
+    from StringIO import StringIO # python 2.7
 except ImportError:
-    from io import StringIO
+    from io import StringIO       # python 3.5
 
-from io import BytesIO
+try:
+    from BytesIO import BytesIO   # python 2.7
+except ImportError:
+    from io import BytesIO        # python 3.5
 
 import numpy as np
 import pandas as pd
@@ -22,7 +25,7 @@ MAPTYPE = 'roadmap'                                  # Default map type
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 HTTP_SUCCESS_STATUS = 200
 INITIALRESOLUTION =  2 * np.pi * 6378137 / TILE_SIZE;# 156543.03392804062 for tileSize 256 pixels
-
+ORIGINSHIFT = 2 * np.pi * 6378137 / 2.0
 
 cache = {}                                           # Caching queries to limit API calls / speed them up
 
@@ -219,21 +222,37 @@ class GoogleStaticMapsAPI:
         amplitudes = (max_pixel - min_pixel).abs() * pd.Series([2., 1.], index=['x_pixel', 'y_pixel'])
         return int(np.log2(2 * size / amplitudes.max()))
 
+    """
+    Following functions from: https://gist.github.com/tucotuco/1193577
+    """
     @classmethod
-    def from_tile_to_latlon(cls, pd_pixelsTile, center_lat, center_long, zoom, size, scale):
+    def LatLonToMeters(cls,lat, lon ):
+        """Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913
+        :param array lat: latitudes y axis
+        :param array lon: longitudes x axis
 
-        pixels = (pd_pixelsTile / scale - size / 2) / 2 ** zoom + cls.to_pixel(center_lat, center_long)
+        :return: array mx: coordinates x axis east meters
+        :return: array my: coordinates y axis east meters
+        """
+        originShift = 2 * np.pi * 6378137 / 2.0
+        mx = lon * ORIGINSHIFT / 180.0
+        my = np.log( np.tan((90 + lat) * np.pi / 360.0 )) / (np.pi / 180.0)
 
-        lon = (pixels['x_pixel'] / TILE_SIZE - 0.5) * 360
+        my = my * ORIGINSHIFT / 180.0
+        return mx, my
 
-        #TILE_SIZE * (0.5 - np.log((1 + siny) / (1 - siny)) / (4 * np.pi)),
 
-        #alpha = np.exp((pixels['y_pixel'] / TILE_SIZE -0.5) * (4 * np.pi))
-        alpha = np.exp(((pixels['y_pixel'] * (4 * np.pi)) / TILE_SIZE) - 0.5)
+    @classmethod
+    def MetersToLatLon(cls, mx, my ):
+        """Converts XY point from Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum
+        :param array mx: coordinates x axis east meters
+        :param array my: coordinates y axist north meters
 
-        lat = np.arcsin((-alpha - 1) / (1 - alpha)) * 180 /np.pi
+        :return: array lat: latitudes y axis
+        :return: array lon: longitudes x axis
+        """
+        lon = (mx / ORIGINSHIFT) * 180.0
+        lat = (my / ORIGINSHIFT) * 180.0
 
-        d = {'latitude': lat, 'longitude': lon}
-        df = pd.DataFrame(data=d)
-
-        return df
+        lat = 180 / np.pi * (2 * np.arctan( np.exp( lat * np.pi / 180.0)) - np.pi / 2.0)
+        return lat, lon

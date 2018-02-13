@@ -1,5 +1,7 @@
 from mapsplotlib import mapsplot as mplt
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from scipy.io import loadmat
 
 mplt.register_api_key('xxx') # xxx = your Google api key

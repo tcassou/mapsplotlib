@@ -1,7 +1,15 @@
-# -*- coding: utf-8 -*-
+	# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from StringIO import StringIO
+try:
+    from StringIO import StringIO # python 2.7
+except ImportError:
+    from io import StringIO       # python 3.5
+
+try:
+    from BytesIO import BytesIO   # python 2.7
+except ImportError:
+    from io import BytesIO        # python 3.5
 
 import numpy as np
 import pandas as pd
@@ -16,6 +24,8 @@ SCALE = 2                                            # 1 or 2 (free plan), see G
 MAPTYPE = 'roadmap'                                  # Default map type
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 HTTP_SUCCESS_STATUS = 200
+INITIALRESOLUTION =  2 * np.pi * 6378137 / TILE_SIZE;# 156543.03392804062 for tileSize 256 pixels
+ORIGINSHIFT = 2 * np.pi * 6378137 / 2.0
 
 cache = {}                                           # Caching queries to limit API calls / speed them up
 
@@ -124,10 +134,12 @@ class GoogleStaticMapsAPI:
         response = requests.get(url)
         # Checking response code, in case of error adding Google API message to the debug of requests exception
         if response.status_code != HTTP_SUCCESS_STATUS:
-            print 'HTTPError: {} - {}. {}'.format(response.status_code, response.reason, response.content)
+            print('HTTPError: {} - {}. {}'.format(response.status_code, response.reason, response.content))
         response.raise_for_status()     # This raises an error in case of unexpected status code
         # Processing the image in case of success
-        img = Image.open(StringIO((response.content)))
+        img = Image.open(BytesIO((response.content)))
+        #img = Image.open(BytesIO(requests.urlopen(url).read()))
+
         if should_cache:
             cache[url] = img
 
@@ -209,3 +221,38 @@ class GoogleStaticMapsAPI:
         # Longitude spans from -180 to +180, latitudes only from -90 to +90
         amplitudes = (max_pixel - min_pixel).abs() * pd.Series([2., 1.], index=['x_pixel', 'y_pixel'])
         return int(np.log2(2 * size / amplitudes.max()))
+
+    """
+    Following functions from: https://gist.github.com/tucotuco/1193577
+    """
+    @classmethod
+    def LatLonToMeters(cls,lat, lon ):
+        """Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913
+        :param array lat: latitudes y axis
+        :param array lon: longitudes x axis
+
+        :return: array mx: coordinates x axis east meters
+        :return: array my: coordinates y axis east meters
+        """
+        originShift = 2 * np.pi * 6378137 / 2.0
+        mx = lon * ORIGINSHIFT / 180.0
+        my = np.log( np.tan((90 + lat) * np.pi / 360.0 )) / (np.pi / 180.0)
+
+        my = my * ORIGINSHIFT / 180.0
+        return mx, my
+
+
+    @classmethod
+    def MetersToLatLon(cls, mx, my ):
+        """Converts XY point from Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum
+        :param array mx: coordinates x axis east meters
+        :param array my: coordinates y axist north meters
+
+        :return: array lat: latitudes y axis
+        :return: array lon: longitudes x axis
+        """
+        lon = (mx / ORIGINSHIFT) * 180.0
+        lat = (my / ORIGINSHIFT) * 180.0
+
+        lat = 180 / np.pi * (2 * np.arctan( np.exp( lat * np.pi / 180.0)) - np.pi / 2.0)
+        return lat, lon
