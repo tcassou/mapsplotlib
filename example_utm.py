@@ -31,7 +31,7 @@ ax.plot(east_survey,north_survey,'b-',label='Map Area', zorder=2)
 plt.legend(loc='best', shadow=True, fancybox=True)
 plt.title('Some Survey ', y=1.04)
 
-fig.savefig('./examples/utm_scatter.png', format='png', dpi=600)
+fig.savefig('./examples/utm_background.png', format='png', dpi=600)
 
 
 plt.show()
