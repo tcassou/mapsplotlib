@@ -13,6 +13,7 @@ TILE_SIZE = 256                                      # Basic Mercator Google Map
 MAX_SIN_LAT = 1. - 1e-5                              # Bound for sinus of latitude
 MAX_SIZE = 640                                       # Max size of the map in pixels
 SCALE = 2                                            # 1 or 2 (free plan), see Google Static Maps API docs
+DEFAULT_ZOOM = 10                                    # Default zoom level, in case it cannot be determined automatically
 MAPTYPE = 'roadmap'                                  # Default map type
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 HTTP_SUCCESS_STATUS = 200
@@ -207,5 +208,5 @@ class GoogleStaticMapsAPI:
         min_pixel = cls.to_pixel(latitudes.min(), longitudes.min())
         max_pixel = cls.to_pixel(latitudes.max(), longitudes.max())
         # Longitude spans from -180 to +180, latitudes only from -90 to +90
-        amplitudes = (max_pixel - min_pixel).abs() * pd.Series([2., 1.], index=['x_pixel', 'y_pixel'])
-        return int(np.log2(2 * size / amplitudes.max()))
+        max_amplitude = ((max_pixel - min_pixel).abs() * pd.Series([2., 1.], index=['x_pixel', 'y_pixel'])).max()
+        return DEFAULT_ZOOM if max_amplitude == 0 else int(np.log2(2 * size / max_amplitude))
