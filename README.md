@@ -108,7 +108,7 @@ df_utm = pd.DataFrame(data=d_utm)
 mplt.scatter_with_utm(df_utm['east'],df_utm['north'],df_utm['value'],29,'N',maptype='satellite', cbar=True,
                       title='Some Survey', cLabel='Val', saveFig=True)
 ```
-![UTM Scatter](https://github.com/tcassou/mapsplotlib/blob/master/examples/utm_scatter.png)
+![UTM Scatter](https://github.com/malaclemys/mapsplotlib/blob/master/examples/utm_scatter.png)
 
 
 ### UTM background google map and plot some values after
@@ -121,7 +121,7 @@ plt.title('Some Survey ', y=1.04)
 
 plt.show()
 ```
-![UTM Background](https://github.com/tcassou/mapsplotlib/blob/master/examples/utm_background.png)
+![UTM Background](https://github.com/malaclemys/mapsplotlib/blob/master/examples/utm_background.png)
 
 ### WGS84 Lat/Lon scatter plot WGS84 background
 Same as previous examples, just input Latitudes and Longitudes values
