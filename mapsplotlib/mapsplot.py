@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 from __future__ import unicode_literals
 
 import warnings
@@ -12,10 +14,10 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from matplotlib import pyplot as plt
 
-from google_static_maps_api import GoogleStaticMapsAPI
-from google_static_maps_api import MAPTYPE
-from google_static_maps_api import MAX_SIZE
-from google_static_maps_api import SCALE
+from .google_static_maps_api import GoogleStaticMapsAPI
+from .google_static_maps_api import MAPTYPE
+from .google_static_maps_api import MAX_SIZE
+from .google_static_maps_api import SCALE
 
 
 BLANK_THRESH = 2 * 1e-3     # Value below which point in a heatmap should be blank
@@ -210,7 +212,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     for c in clusters.unique():
         in_polygon = clusters == c
         if in_polygon.sum() < 3:
-            print '[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum())
+            print('[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum()))
             continue
         cluster_pixels = pixels.loc[clusters == c]
         polygons.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))

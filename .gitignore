@@ -11,6 +11,7 @@
 *.ipynb
 .ipynb_checkpoints
 .venv/
+.venv3/
 dist/
 
 *~

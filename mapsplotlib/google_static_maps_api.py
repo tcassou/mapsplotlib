@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 from __future__ import unicode_literals
 
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO as StringIO
 
 import numpy as np
 import pandas as pd
@@ -125,7 +131,7 @@ class GoogleStaticMapsAPI:
         response = requests.get(url)
         # Checking response code, in case of error adding Google API message to the debug of requests exception
         if response.status_code != HTTP_SUCCESS_STATUS:
-            print 'HTTPError: {} - {}. {}'.format(response.status_code, response.reason, response.content)
+            print('HTTPError: {} - {}. {}'.format(response.status_code, response.reason, response.content))
         response.raise_for_status()     # This raises an error in case of unexpected status code
         # Processing the image in case of success
         img = Image.open(StringIO((response.content)))

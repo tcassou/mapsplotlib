@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 
-version = '1.0.7'
+version = '1.1.0'
 
 setup(
     name = 'mapsplotlib',
@@ -16,6 +16,7 @@ setup(
         'Programming Language :: Python',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering :: Visualization',
     ],
     install_requires=[
