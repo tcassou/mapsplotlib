@@ -9,10 +9,10 @@ import warnings
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndi
-from scipy.spatial import ConvexHull
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
 from matplotlib import pyplot as plt
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Polygon
+from scipy.spatial import ConvexHull
 
 from .google_static_maps_api import GoogleStaticMapsAPI
 from .google_static_maps_api import MAPTYPE
@@ -208,19 +208,19 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     width = SCALE * MAX_SIZE
     img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
 
-    polygons = []
+    polygon_list = []
     for c in clusters.unique():
         in_polygon = clusters == c
         if in_polygon.sum() < 3:
             print('[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum()))
             continue
         cluster_pixels = pixels.loc[clusters == c]
-        polygons.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))
+        polygon_list.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))
 
     plt.figure(figsize=(10, 10))
     ax = plt.subplot(111)
     plt.imshow(np.array(img))                                               # Background map
-    p = PatchCollection(polygons, cmap='jet', alpha=0.15)                   # Collection of polygons
+    p = PatchCollection(polygon_list, cmap='jet', alpha=0.15)               # Collection of polygons
     p.set_array(clusters.unique())
     ax.add_collection(p)
     plt.scatter(                                                            # Scatter plot

@@ -5,14 +5,17 @@ from distutils.core import setup
 version = '1.1.0'
 
 setup(
-    name = 'mapsplotlib',
-    packages = ['mapsplotlib'],
-    version = version,
-    description = 'Custom Python plots on a Google Maps background. A flexible matplotlib like interface to generate many types of plots on top of Google Maps.',
-    url = 'https://github.com/tcassou/mapsplotlib',
-    download_url = 'https://github.com/tcassou/mapsplotlib/archive/{}.tar.gz'.format(version),
-    keywords = ['google', 'maps', 'matplotlib', 'python', 'plot'],
-    classifiers = [
+    name='mapsplotlib',
+    packages=['mapsplotlib'],
+    version=version,
+    description='''
+        Custom Python plots on a Google Maps background.
+        A flexible matplotlib like interface to generate many types of plots on top of Google Maps.
+    ''',
+    url='https://github.com/tcassou/mapsplotlib',
+    download_url='https://github.com/tcassou/mapsplotlib/archive/{}.tar.gz'.format(version),
+    keywords=['google', 'maps', 'matplotlib', 'python', 'plot'],
+    classifiers=[
         'Programming Language :: Python',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 2.7',

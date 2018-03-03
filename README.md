@@ -1,5 +1,7 @@
 # Mapsplotlib
 
+[![Build Status](https://travis-ci.org/tcassou/mapsplotlib.svg?branch=master)](https://travis-ci.org/tcassou/mapsplotlib)
+
 Custom Python plots on a Google Maps background. A flexible matplotlib like interface to generate many types of plots on top of Google Maps.
 
 This package was renamed from the legacy `tcassou/gmaps` due to an unfortunate conflict in names with a package from Pypi.
@@ -92,4 +94,3 @@ mplt.polygons(df['latitude'], df['longitude'], df['cluster'])
 * `requests >= 2.7.0`
 * `requests>=2.18.4`
 * `pillow>=4.3.0`
-

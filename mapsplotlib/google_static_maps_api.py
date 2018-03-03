@@ -215,4 +215,6 @@ class GoogleStaticMapsAPI:
         max_pixel = cls.to_pixel(latitudes.max(), longitudes.max())
         # Longitude spans from -180 to +180, latitudes only from -90 to +90
         max_amplitude = ((max_pixel - min_pixel).abs() * pd.Series([2., 1.], index=['x_pixel', 'y_pixel'])).max()
-        return DEFAULT_ZOOM if max_amplitude == 0 else int(np.log2(2 * size / max_amplitude))
+        if max_amplitude == 0 or np.isnan(max_amplitude):
+            return DEFAULT_ZOOM
+        return int(np.log2(2 * size / max_amplitude))
