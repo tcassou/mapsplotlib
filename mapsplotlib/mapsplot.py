@@ -9,9 +9,11 @@ import warnings
 import numpy as np
 import pandas as pd
 import scipy.ndimage as ndi
+from matplotlib import cm
 from matplotlib import pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
+from matplotlib.patches import Rectangle
 from scipy.spatial import ConvexHull
 
 from .google_static_maps_api import GoogleStaticMapsAPI
@@ -200,7 +202,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
-    :param pandas.Series clusters: marker clusters, as integers
+    :param pandas.Series clusters: marker clusters
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
 
     :return: None
@@ -208,8 +210,11 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     width = SCALE * MAX_SIZE
     img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
 
+    # Building collection of polygons
     polygon_list = []
-    for c in clusters.unique():
+    unique_clusters = clusters.unique()
+    cmap = pd.Series(np.arange(unique_clusters.shape[0] - 1, -1, -1), index=unique_clusters)
+    for c in unique_clusters:
         in_polygon = clusters == c
         if in_polygon.sum() < 3:
             print('[WARN] Cannot draw polygon for cluster {} - only {} samples.'.format(c, in_polygon.sum()))
@@ -217,22 +222,35 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
         cluster_pixels = pixels.loc[clusters == c]
         polygon_list.append(Polygon(cluster_pixels.iloc[ConvexHull(cluster_pixels).vertices], closed=True))
 
+    # Background map
     plt.figure(figsize=(10, 10))
     ax = plt.subplot(111)
-    plt.imshow(np.array(img))                                               # Background map
-    p = PatchCollection(polygon_list, cmap='jet', alpha=0.15)               # Collection of polygons
-    p.set_array(clusters.unique())
+    plt.imshow(np.array(img))
+    # Collection of polygons
+    p = PatchCollection(polygon_list, cmap='jet', alpha=0.25)
+    p.set_array(cmap.values)
     ax.add_collection(p)
-    plt.scatter(                                                            # Scatter plot
+    # Scatter plot
+    plt.scatter(
         pixels['x_pixel'],
         pixels['y_pixel'],
-        c=clusters,
+        c=cmap.loc[clusters],
+        cmap='jet',
         s=width / 40,
         linewidth=0,
         alpha=0.25,
     )
+    # Axis options
     plt.gca().invert_yaxis()                                                # Origin of map is upper left
     plt.axis([0, width, width, 0])                                          # Remove margin
     plt.axis('off')
     plt.tight_layout()
+    # Building legend box
+    jet_cmap = cm.get_cmap('jet')
+    plt.legend(
+        [Rectangle((0, 0), 1, 1, fc=jet_cmap(i / (cmap.shape[0] - 1)), alpha=0.25) for i in cmap.values],
+        cmap.index,
+        loc=4,
+        bbox_to_anchor=(1.1, 0),
+    )
     plt.show()
