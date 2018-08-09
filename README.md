@@ -13,7 +13,14 @@ Simply install from `pip`:
 pip install mapsplotlib
 ```
 
-You'll then need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API and get your server key. Before plotting maps, you'll have to register your key (only once for each session you start):
+For now, it seems that the Google Static Maps API can still be hit without using an API key:
+```
+from mapsplotlib import mapsplot as mplt
+
+# all plots can now be performed here
+```
+This behavior will probably change in the future though... In this case you'll then need to have a Google Static Maps API key, go to https://console.developers.google.com, create a project, enable Google Static Maps API and get your server key. Note that billing details have to be enabled for your account for the API calls to work.
+Before plotting maps, you'll have to register your key (only once for each session you start):
 ```
 from mapsplotlib import mapsplot as mplt
 

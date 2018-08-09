@@ -23,6 +23,7 @@ DEFAULT_ZOOM = 10                                    # Default zoom level, in ca
 MAPTYPE = 'roadmap'                                  # Default map type
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 HTTP_SUCCESS_STATUS = 200
+HTTP_FORBIDDEN_STATUS = 403
 
 cache = {}                                           # Caching queries to limit API calls / speed them up
 
@@ -97,8 +98,6 @@ class GoogleStaticMapsAPI:
         :return: map image
         :rtype: PIL.Image
         """
-        if not hasattr(cls, '_api_key'):
-            raise KeyError('No Google Static Maps API key registered - refer to the README.')
 
         # For now, caching only if no markers are given
         should_cache = markers is None
@@ -123,16 +122,21 @@ class GoogleStaticMapsAPI:
         url += 'size={}x{}&'.format(*tuple(min(el, MAX_SIZE) for el in size))
         url += 'maptype={}&'.format(maptype)
         url += 'format={}&'.format(file_format)
-        url += 'key={}'.format(cls._api_key)
-
         if url in cache:
             return cache[url]
+
+        if hasattr(cls, '_api_key'):
+            url += 'key={}'.format(cls._api_key)
 
         response = requests.get(url)
         # Checking response code, in case of error adding Google API message to the debug of requests exception
         if response.status_code != HTTP_SUCCESS_STATUS:
-            print('HTTPError: {} - {}.'.format(response.status_code, response.reason))
+            if response.status_code == HTTP_FORBIDDEN_STATUS and not hasattr(cls, '_api_key'):
+                raise KeyError('No Google Static Maps API key registered - refer to the README.')
+            else:
+                print('HTTPError: {} - {}.'.format(response.status_code, response.reason))
         response.raise_for_status()     # This raises an error in case of unexpected status code
+
         # Processing the image in case of success
         img = Image.open(StringIO((response.content)))
         if should_cache:
