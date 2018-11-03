@@ -10,8 +10,7 @@
 # Ignore ipython notebooks & checkpoints
 *.ipynb
 .ipynb_checkpoints
-.venv/
-.venv3/
+.env*/
 dist/
 
 *~
