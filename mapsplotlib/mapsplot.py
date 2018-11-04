@@ -106,7 +106,7 @@ def plot_markers(markers, maptype=MAPTYPE):
     """
     # Checking input columns
     fields = markers.columns.intersection(['latitude', 'longitude', 'color', 'label', 'size'])
-    if len(fields) == 0 or 'latitude' not in fields or 'longitude' not in fields:
+    if not fields or 'latitude' not in fields or 'longitude' not in fields:
         msg = 'Input dataframe should contain at least colums \'latitude\' and \'longitude\' '
         msg += '(and columns \'color\', \'label\', \'size\' optionally).'
         raise KeyError(msg)
