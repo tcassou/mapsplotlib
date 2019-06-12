@@ -131,8 +131,11 @@ class GoogleStaticMapsAPI:
         response = requests.get(url)
         # Checking response code, in case of error adding Google API message to the debug of requests exception
         if response.status_code != HTTP_SUCCESS_STATUS:
-            if response.status_code == HTTP_FORBIDDEN_STATUS and not hasattr(cls, '_api_key'):
-                raise KeyError('No Google Static Maps API key registered - refer to the README.')
+            if response.status_code == HTTP_FORBIDDEN_STATUS:
+                if not hasattr(cls, '_api_key'):
+                    raise KeyError('No Google Static Maps API key registered - refer to the README.')
+                else:
+                    raise KeyError('Error {} - Forbidden. Is your API key valid?'.format(HTTP_FORBIDDEN_STATUS))
             else:
                 print('HTTPError: {} - {}.'.format(response.status_code, response.reason))
         response.raise_for_status()     # This raises an error in case of unexpected status code
