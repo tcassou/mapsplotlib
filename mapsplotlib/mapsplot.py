@@ -63,13 +63,14 @@ def background_and_pixels(latitudes, longitudes, size, maptype):
     return img, pixels
 
 
-def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE):
+def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5):
     """Scatter plot over a map. Can be used to visualize clusters by providing the marker colors.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
     :param pandas.Series colors: marker colors, as integers
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param float alpha: transparency for plot markers between 0 (transparent) and 1 (opaque)
 
     :return: None
     """
@@ -84,7 +85,7 @@ def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE):
         c=colors,
         s=width / 40,
         linewidth=0,
-        alpha=0.5,
+        alpha=alpha,
     )
     plt.gca().invert_yaxis()                                                # Origin of map is upper left
     plt.axis([0, width, width, 0])                                          # Remove margin
@@ -127,7 +128,7 @@ def plot_markers(markers, maptype=MAPTYPE):
     plt.show()
 
 
-def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE):
+def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alpha=0.25):
     """Plot a geographical heatmap of the given metric.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -135,6 +136,7 @@ def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE):
     :param pandas.Series values: series of sample values
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param float alpha: transparency for heatmap overlay, between 0 (transparent) and 1 (opaque)
 
     :return: None
     """
@@ -143,32 +145,33 @@ def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE):
     z = grid_density_gaussian_filter(
         zip(pixels['x_pixel'], pixels['y_pixel'], values),
         MAX_SIZE * SCALE,
-        resolution=resolution if resolution else MAX_SIZE * SCALE,          # Heuristic for pretty plots
+        resolution=resolution if resolution else MAX_SIZE * SCALE,              # Heuristic for pretty plots
     )
     # Plot
     width = SCALE * MAX_SIZE
     plt.figure(figsize=(10, 10))
-    plt.imshow(np.array(img))                                               # Background map
-    plt.imshow(z, origin='lower', extent=[0, width, 0, width], alpha=0.15)  # Foreground, transparent heatmap
-    plt.scatter(pixels['x_pixel'], pixels['y_pixel'], s=1)                  # Markers of all points
-    plt.gca().invert_yaxis()                                                # Origin of map is upper left
-    plt.axis([0, width, width, 0])                                          # Remove margin
+    plt.imshow(np.array(img))                                                   # Background map
+    plt.imshow(z, origin='lower', extent=[0, width, 0, width], alpha=alpha)     # Foreground, transparent heatmap
+    plt.scatter(pixels['x_pixel'], pixels['y_pixel'], s=1)                      # Markers of all points
+    plt.gca().invert_yaxis()                                                    # Origin of map is upper left
+    plt.axis([0, width, width, 0])                                              # Remove margin
     plt.axis('off')
     plt.tight_layout()
     plt.show()
 
 
-def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE):
+def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE, alpha=0.25):
     """Given a set of geo coordinates, draw a density plot on a map.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param float alpha: transparency for heatmap overlay, between 0 (transparent) and 1 (opaque)
 
     :return: None
     """
-    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), resolution=resolution, maptype=maptype)
+    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), resolution=resolution, maptype=maptype, alpha=alpha)
 
 
 def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=None):
@@ -197,13 +200,14 @@ def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=N
     return z[w:-w, w:-w]
 
 
-def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
+def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25):
     """Plot clusters of points on map, including them in a polygon defining their convex hull.
 
     :param pandas.Series latitudes: series of sample latitudes
     :param pandas.Series longitudes: series of sample longitudes
     :param pandas.Series clusters: marker clusters
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param float alpha: transparency for polygons overlay, between 0 (transparent) and 1 (opaque)
 
     :return: None
     """
@@ -227,7 +231,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     ax = plt.subplot(111)
     plt.imshow(np.array(img))
     # Collection of polygons
-    p = PatchCollection(polygon_list, cmap='jet', alpha=0.25)
+    p = PatchCollection(polygon_list, cmap='jet', alpha=alpha)
     p.set_array(cmap.values)
     ax.add_collection(p)
     # Scatter plot
@@ -238,7 +242,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
         cmap='jet',
         s=width / 40,
         linewidth=0,
-        alpha=0.25,
+        alpha=alpha,
     )
     # Axis options
     plt.gca().invert_yaxis()                                                # Origin of map is upper left
@@ -248,7 +252,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE):
     # Building legend box
     jet_cmap = cm.get_cmap('jet')
     plt.legend(
-        [Rectangle((0, 0), 1, 1, fc=jet_cmap(i / (cmap.shape[0] - 1)), alpha=0.25) for i in cmap.values],
+        [Rectangle((0, 0), 1, 1, fc=jet_cmap(i / (cmap.shape[0] - 1)), alpha=alpha) for i in cmap.values],
         cmap.index,
         loc=4,
         bbox_to_anchor=(1.1, 0),
