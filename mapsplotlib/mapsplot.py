@@ -12,8 +12,10 @@ import scipy.ndimage as ndi
 from matplotlib import cm
 from matplotlib import pyplot as plt
 from matplotlib.collections import PatchCollection
+from matplotlib.patches import PathPatch
 from matplotlib.patches import Polygon
 from matplotlib.patches import Rectangle
+from matplotlib.path import Path
 from scipy.spatial import ConvexHull
 
 from .google_static_maps_api import GoogleStaticMapsAPI
@@ -257,4 +259,38 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25):
         loc=4,
         bbox_to_anchor=(1.1, 0),
     )
+    plt.show()
+
+
+def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1.):
+    """Plot a polyline on a map, joining (lat lon) pairs in the order defined by the input.
+
+    :param pandas.Series latitudes: series of sample latitudes
+    :param pandas.Series longitudes: series of sample longitudes
+    :param bool closed: set to `True` if you want to close the line, from last (lat, lon) pair back to first one
+    :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param float alpha: transparency for polyline overlay, between 0 (transparent) and 1 (opaque)
+
+    :return: None
+    """
+    width = SCALE * MAX_SIZE
+    img, pixels = background_and_pixels(latitudes, longitudes, MAX_SIZE, maptype)
+    # Building polyline
+    verts = pixels.values.tolist()
+    codes = [Path.MOVETO] + [Path.LINETO for _ in range(max(pixels.shape[0] - 1, 0))]
+    if closed:
+        verts.append(verts[0])
+        codes.append(Path.CLOSEPOLY)
+    # Background map
+    plt.figure(figsize=(10, 10))
+    ax = plt.subplot(111)
+    plt.imshow(np.array(img))
+    # Polyline
+    patch = PathPatch(Path(verts, codes), facecolor='none', lw=2, alpha=alpha)
+    ax.add_patch(patch)
+    # Axis options
+    plt.gca().invert_yaxis()                                                # Origin of map is upper left
+    plt.axis([0, width, width, 0])                                          # Remove margin
+    plt.axis('off')
+    plt.tight_layout()
     plt.show()

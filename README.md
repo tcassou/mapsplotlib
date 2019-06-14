@@ -73,7 +73,7 @@ Let's assume your pandas DataFrame `df` has a numerical `'cluster'` column, desc
 ```
 mplt.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
-![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/clusters.png)
+![Scatter Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/clusters.png)
 
 ### Polygon Plots
 
@@ -82,7 +82,16 @@ Still with the same DataFrame `df` and its `'cluster'` column, plotting clusters
 ```
 mplt.polygons(df['latitude'], df['longitude'], df['cluster'])
 ```
-![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/polygons.png)
+![Polygons Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/polygons.png)
+
+### Polygon Plots
+
+Given a DataFrame `df` with `'latitude'` & `'longitude'` columns, plotting a line joining all `(lat, lon)` pairs (with the option to close the line).
+
+```
+mplt.polyline(df['latitude'], df['longitude'], closed=True)
+```
+![Polyline Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/polyline.png)
 
 ### More to come!
 
