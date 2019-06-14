@@ -252,7 +252,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25):
     # Building legend box
     jet_cmap = cm.get_cmap('jet')
     plt.legend(
-        [Rectangle((0, 0), 1, 1, fc=jet_cmap(i / (cmap.shape[0] - 1)), alpha=alpha) for i in cmap.values],
+        [Rectangle((0, 0), 1, 1, fc=jet_cmap(i / max(cmap.shape[0] - 1, 1)), alpha=alpha) for i in cmap.values],
         cmap.index,
         loc=4,
         bbox_to_anchor=(1.1, 0),
