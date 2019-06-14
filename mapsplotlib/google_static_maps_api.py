@@ -122,11 +122,12 @@ class GoogleStaticMapsAPI:
         url += 'size={}x{}&'.format(*tuple(min(el, MAX_SIZE) for el in size))
         url += 'maptype={}&'.format(maptype)
         url += 'format={}&'.format(file_format)
-        if url in cache:
-            return cache[url]
 
         if hasattr(cls, '_api_key'):
             url += 'key={}'.format(cls._api_key)
+
+        if url in cache:
+            return cache[url]
 
         response = requests.get(url)
         # Checking response code, in case of error adding Google API message to the debug of requests exception
