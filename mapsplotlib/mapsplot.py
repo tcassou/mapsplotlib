@@ -45,7 +45,7 @@ def background_and_pixels(latitudes, longitudes, size, maptype):
     :param pandas.Series longitudes: series of sample longitudes
     :param int size: target size of the map, in pixels
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
-
+    
     :return: map and pixels
     :rtype: (PIL.Image, pandas.DataFrame)
     """
@@ -65,7 +65,7 @@ def background_and_pixels(latitudes, longitudes, size, maptype):
     return img, pixels
 
 
-def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5):
+def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5, toFile=None):
     """Scatter plot over a map. Can be used to visualize clusters by providing the marker colors.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -73,6 +73,7 @@ def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5):
     :param pandas.Series colors: marker colors, as integers
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
     :param float alpha: transparency for plot markers between 0 (transparent) and 1 (opaque)
+    :param string toFile: file name to save plot to
 
     :return: None
     """
@@ -93,10 +94,13 @@ def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5):
     plt.axis([0, width, width, 0])                                          # Remove margin
     plt.axis('off')
     plt.tight_layout()
-    plt.show()
+    if toFile == None:
+        plt.show()
+    else:
+        plt.savefig(toFile)
 
 
-def plot_markers(markers, maptype=MAPTYPE):
+def plot_markers(markers, maptype=MAPTYPE, toFile=None):
     """Plot markers on a map.
 
     :param pandas.DataFrame markers: DataFrame with at least 'latitude' and 'longitude' columns, and optionally
@@ -104,6 +108,7 @@ def plot_markers(markers, maptype=MAPTYPE):
         * 'label' column, see GoogleStaticMapsAPI docs for more info
         * 'size' column, see GoogleStaticMapsAPI docs for more info
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
+    :param string toFile: file name to save plot to
 
     :return: None
     """
@@ -127,10 +132,13 @@ def plot_markers(markers, maptype=MAPTYPE):
     plt.imshow(np.array(img))
     plt.tight_layout()
     plt.axis('off')
-    plt.show()
+    if toFile == None:
+        plt.show()
+    else:
+        plt.savefig(toFile)
 
 
-def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alpha=0.25):
+def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alpha=0.25, toFile=None):
     """Plot a geographical heatmap of the given metric.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -139,6 +147,7 @@ def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alp
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
     :param float alpha: transparency for heatmap overlay, between 0 (transparent) and 1 (opaque)
+    :param string toFile: file name to save plot to
 
     :return: None
     """
@@ -159,10 +168,13 @@ def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alp
     plt.axis([0, width, width, 0])                                              # Remove margin
     plt.axis('off')
     plt.tight_layout()
-    plt.show()
+    if toFile == None:
+        plt.show()
+    else:
+        plt.savefig(toFile)
 
 
-def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE, alpha=0.25):
+def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE, alpha=0.25, toFile=None):
     """Given a set of geo coordinates, draw a density plot on a map.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -170,10 +182,11 @@ def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE, alpha=
     :param int resolution: resolution (in pixels) for the heatmap
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
     :param float alpha: transparency for heatmap overlay, between 0 (transparent) and 1 (opaque)
+    :param string toFile: file name to save plot to
 
     :return: None
     """
-    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), resolution=resolution, maptype=maptype, alpha=alpha)
+    heatmap(latitudes, longitudes, np.ones(latitudes.shape[0]), resolution=resolution, maptype=maptype, alpha=alpha, toFile=toFile)
 
 
 def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=None):
@@ -202,7 +215,7 @@ def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=N
     return z[w:-w, w:-w]
 
 
-def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25):
+def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25, toFile=None):
     """Plot clusters of points on map, including them in a polygon defining their convex hull.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -210,6 +223,7 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25):
     :param pandas.Series clusters: marker clusters
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
     :param float alpha: transparency for polygons overlay, between 0 (transparent) and 1 (opaque)
+    :param string toFile: file name to save plot to
 
     :return: None
     """
@@ -259,10 +273,13 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25):
         loc=4,
         bbox_to_anchor=(1.1, 0),
     )
-    plt.show()
+    if toFile == None:
+        plt.show()
+    else:
+        plt.savefig(toFile)
 
 
-def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1.):
+def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1., toFile=None):
     """Plot a polyline on a map, joining (lat lon) pairs in the order defined by the input.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -270,7 +287,7 @@ def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1.):
     :param bool closed: set to `True` if you want to close the line, from last (lat, lon) pair back to first one
     :param string maptype: type of maps, see GoogleStaticMapsAPI docs for more info
     :param float alpha: transparency for polyline overlay, between 0 (transparent) and 1 (opaque)
-
+    :param string toFile: file name to save plot to
     :return: None
     """
     width = SCALE * MAX_SIZE
@@ -293,4 +310,7 @@ def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1.):
     plt.axis([0, width, width, 0])                                          # Remove margin
     plt.axis('off')
     plt.tight_layout()
-    plt.show()
+    if toFile == None:
+        plt.show()
+    else:
+        plt.savefig(toFile)
