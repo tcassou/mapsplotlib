@@ -65,7 +65,7 @@ def background_and_pixels(latitudes, longitudes, size, maptype):
     return img, pixels
 
 
-def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5, toFile=None):
+def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5, toFile=""):
     """Scatter plot over a map. Can be used to visualize clusters by providing the marker colors.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -94,13 +94,13 @@ def scatter(latitudes, longitudes, colors=None, maptype=MAPTYPE, alpha=0.5, toFi
     plt.axis([0, width, width, 0])                                          # Remove margin
     plt.axis('off')
     plt.tight_layout()
-    if toFile == None:
+    if not toFile:
         plt.show()
     else:
         plt.savefig(toFile)
 
 
-def plot_markers(markers, maptype=MAPTYPE, toFile=None):
+def plot_markers(markers, maptype=MAPTYPE, toFile=""):
     """Plot markers on a map.
 
     :param pandas.DataFrame markers: DataFrame with at least 'latitude' and 'longitude' columns, and optionally
@@ -132,13 +132,13 @@ def plot_markers(markers, maptype=MAPTYPE, toFile=None):
     plt.imshow(np.array(img))
     plt.tight_layout()
     plt.axis('off')
-    if toFile == None:
+    if not toFile:
         plt.show()
     else:
         plt.savefig(toFile)
 
 
-def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alpha=0.25, toFile=None):
+def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alpha=0.25, toFile=""):
     """Plot a geographical heatmap of the given metric.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -168,13 +168,13 @@ def heatmap(latitudes, longitudes, values, resolution=None, maptype=MAPTYPE, alp
     plt.axis([0, width, width, 0])                                              # Remove margin
     plt.axis('off')
     plt.tight_layout()
-    if toFile == None:
+    if not toFile:
         plt.show()
     else:
         plt.savefig(toFile)
 
 
-def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE, alpha=0.25, toFile=None):
+def density_plot(latitudes, longitudes, resolution=None, maptype=MAPTYPE, alpha=0.25, toFile=""):
     """Given a set of geo coordinates, draw a density plot on a map.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -215,7 +215,7 @@ def grid_density_gaussian_filter(data, size, resolution=None, smoothing_window=N
     return z[w:-w, w:-w]
 
 
-def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25, toFile=None):
+def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25, toFile=""):
     """Plot clusters of points on map, including them in a polygon defining their convex hull.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -273,13 +273,13 @@ def polygons(latitudes, longitudes, clusters, maptype=MAPTYPE, alpha=0.25, toFil
         loc=4,
         bbox_to_anchor=(1.1, 0),
     )
-    if toFile == None:
+    if not toFile:
         plt.show()
     else:
         plt.savefig(toFile)
 
 
-def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1., toFile=None):
+def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1., toFile=""):
     """Plot a polyline on a map, joining (lat lon) pairs in the order defined by the input.
 
     :param pandas.Series latitudes: series of sample latitudes
@@ -310,7 +310,7 @@ def polyline(latitudes, longitudes, closed=False, maptype=MAPTYPE, alpha=1., toF
     plt.axis([0, width, width, 0])                                          # Remove margin
     plt.axis('off')
     plt.tight_layout()
-    if toFile == None:
+    if not toFile:
         plt.show()
     else:
         plt.savefig(toFile)
