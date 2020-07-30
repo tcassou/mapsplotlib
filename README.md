@@ -1,6 +1,6 @@
 # Mapsplotlib
 
-[![Build Status](https://travis-ci.org/tcassou/mapsplotlib.svg?branch=master)](https://travis-ci.org/tcassou/mapsplotlib)
+[![Build](https://github.com/tcassou/mapsplotlib/workflows/Test%20and%20Release/badge.svg)](https://github.com/tcassou/mapsplotlib/actions)
 
 Custom Python plots on a Google Maps background. A flexible matplotlib like interface to generate many types of plots on top of Google Maps.
 
