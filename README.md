@@ -15,7 +15,7 @@ pip install mapsplotlib
 
 You need to have a Google Static Maps API key, go to https://console.cloud.google.com/google/maps-apis, create a project, enable Google Static Maps API and get your API key. Billing details have to be enabled for your account for the API calls to succeed.
 Before plotting maps, you'll have to register your key (only once for each session you start):
-```
+```python
 from mapsplotlib import mapsplot as mplt
 
 mplt.register_api_key('your_google_api_key_here')
@@ -40,7 +40,7 @@ Simply plotting markers on a map. Consider a pandas DataFrame `df` defined as fo
 ```
 
 Simply use (assuming `mapsplot` was imported already, and your key registered)
-```
+```python
 mplt.plot_markers(df)
 ```
 will produce
@@ -51,7 +51,7 @@ will produce
 
 The only thing you need is a pandas DataFrame `df` containing a `'latitude'` and a `'longitude'` columns, describing locations.
 
-```
+```python
 mplt.density_plot(df['latitude'], df['longitude'])
 ```
 
@@ -61,7 +61,7 @@ mplt.density_plot(df['latitude'], df['longitude'])
 
 This time your pandas DataFrame `df` will need an extra `'value'` column, describing the metric you want to plot (you may have to normalize it properly for a good rendering).
 
-```
+```python
 mplt.heatmap(df['latitude'], df['longitude'], df['value'])
 ```
 ![Heat Map](https://github.com/tcassou/mapsplotlib/blob/master/examples/heatmap.png)
@@ -70,7 +70,7 @@ mplt.heatmap(df['latitude'], df['longitude'], df['value'])
 
 Let's assume your pandas DataFrame `df` has a numerical `'cluster'` column, describing clusters of geographical points. You can produce plots like the following:
 
-```
+```python
 mplt.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 ```
 ![Scatter Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/clusters.png)
@@ -79,7 +79,7 @@ mplt.scatter(df['latitude'], df['longitude'], colors=df['cluster'])
 
 Still with the same DataFrame `df` and its `'cluster'` column, plotting clusters and their convex hull.
 
-```
+```python
 mplt.polygons(df['latitude'], df['longitude'], df['cluster'])
 ```
 ![Polygons Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/polygons.png)
@@ -88,7 +88,7 @@ mplt.polygons(df['latitude'], df['longitude'], df['cluster'])
 
 Given a DataFrame `df` with `'latitude'` & `'longitude'` columns, plotting a line joining all `(lat, lon)` pairs (with the option to close the line).
 
-```
+```python
 mplt.polyline(df['latitude'], df['longitude'], closed=True)
 ```
 ![Polyline Plot](https://github.com/tcassou/mapsplotlib/blob/master/examples/polyline.png)
